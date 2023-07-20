@@ -1,0 +1,163 @@
+data.txt:
+0
+
+food.py:
+from turtle import Turtle
+from random import randint
+class Food(Turtle):
+
+    def __init__(self):
+        super().__init__()
+        self.shape("circle")
+        self.penup()
+        self.speed(0)
+        self.color("blue")
+        self.shapesize(0.5,0.5)
+        self.refresh()
+
+    def refresh(self):
+        x_axis = randint(-280, 280)
+        y_axis = randint(-280, 280)
+        self.goto(x_axis, y_axis)
+
+score_bord.py:
+
+from turtle import Turtle
+FONT=("courier", 12, "normal")
+ALIGN="center"
+class Score(Turtle):
+    def __init__(self):
+        super().__init__()
+        self.score=0
+        with open("data.txt",mode="r") as file_read:
+            self.higest_score=int(file_read.read())
+        self.hideturtle()
+        self.speed(0)
+        self.penup()
+        self.color("white")
+        self.print_score()
+
+    def score_maintain(self):
+        self.score+=1
+        self.print_score()
+
+    def print_score(self):
+        self.goto(0, 270)
+        self.clear()
+        self.write(f"score: {self.score}  Higest score: {self.higest_score}", move=True, align="center",
+                   font=("Arial", 16, "normal"))
+    def reset_score(self):
+        self.goto(0,0)
+        if self.score>self.higest_score:
+            self.higest_score=self.score
+            with open("data.txt", mode="w") as file_write:
+                   file_write.write(str(self.higest_score))
+        self.score=0
+        self.print_score()
+
+
+snake.py:
+from turtle import Turtle
+
+POSITIONS = [(0, 0), (20, 0), (40, 0)]
+UP = 90
+LEFT = 180
+DOWN = 270
+RIGHT = 0
+
+
+class Snake:
+
+    def __init__(self):
+        self.snakes = []
+        self.create_snake()
+
+    def create_snake(self):
+        for position in POSITIONS:
+            self.add_snake(position)
+    def add_snake(self,position):
+        self.new_snake = Turtle("square")
+        self.new_snake.color("white")
+        self.new_snake.penup()
+        self.new_snake.goto(position)
+        self.snakes.append((self.new_snake))
+    def extand(self):
+        self.add_snake(self.snakes[-1].position())
+    def move(self):
+        for i in range(len(self.snakes) - 1, 0, -1):
+            x_axis = self.snakes[i - 1].xcor()
+            y_axis = self.snakes[i - 1].ycor()
+            self.snakes[i].goto(x_axis, y_axis)
+        self.snakes[0].fd(20)
+
+    def up(self):
+        if self.snakes[0].heading() != DOWN:
+            self.snakes[0].setheading(UP)
+
+    def left(self):
+        if self.snakes[0].heading() != RIGHT:
+            self.snakes[0].setheading(LEFT)
+
+    def down(self):
+        if self.snakes[0].heading() != UP:
+            self.snakes[0].setheading(DOWN)
+
+    def right(self):
+        if self.snakes[0].heading() != LEFT:
+            self.snakes[0].setheading(RIGHT)
+    def delet_snake(self):
+        for seg in self.snakes:
+            seg.goto(1000,1000)
+        self.snakes.clear()
+        self.create_snake()
+
+
+main.py:
+
+import turtle
+import time
+from food import Food
+from turtle import exitonclick, getscreen
+from snake import Snake
+from score_bord import Score
+
+snake = Snake()
+food = Food()
+score = Score()
+turtle.hideturtle()
+my_screen = getscreen()
+my_screen.setup(width=600, height=600)
+my_screen.title("Snake Game")
+my_screen.bgcolor("black")
+my_screen.tracer(0)
+game_over = False
+my_screen.listen()
+my_screen.onkey(snake.up, "Up")
+my_screen.onkey(snake.left, "Left")
+my_screen.onkey(snake.down, "Down")
+my_screen.onkey(snake.right, "Right")
+snake.move()
+while not game_over:
+    my_screen.update()
+    time.sleep(0.1)
+    snake.move()
+    if snake.snakes[0].distance(food) < 15:
+        food.refresh()
+        snake.extand()
+        score.score_maintain()
+
+    if snake.snakes[0].xcor() > 290 or snake.snakes[0].xcor() < -290 or snake.snakes[0].ycor() < -280 or snake.snakes[
+        0].ycor() > 280:
+        score.reset_score()
+        snake.delet_snake()
+        snake.move()
+
+    for segment in (snake.snakes):
+        if snake.snakes[0] == segment:
+            pass
+        elif snake.snakes[0].distance(segment) < 10:
+            score.reset_score()
+            snake.delet_snake()
+            snake.move()
+
+exitonclick()
